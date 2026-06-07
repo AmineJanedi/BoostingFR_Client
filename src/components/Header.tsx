@@ -31,7 +31,7 @@ const Header = () => {
   className="flex items-center gap-2 group">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform">
              <img
-        src="/logo.png"
+        src="/logozoomed.png"
         alt="Boosting.fr Logo"
         className="w-8 h-8 object-contain"
       />
