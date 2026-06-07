@@ -31,7 +31,7 @@ const Features = () => {
   ];
 
   return (
-    <section id="products" className="py-24 bg-white">
+    <section id="products" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-serif font-bold mb-4">Pourquoi choisir Boosting.fr ?</h2>
@@ -44,9 +44,9 @@ const Features = () => {
             <motion.div 
               key={index}
               whileHover={{ y: -10 }}
-              className="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:shadow-xl transition-all"
+              className="p-8 rounded-3xl bg-white border border-gray-100 hover:shadow-xl transition-all"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm mb-6">
+              <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary shadow-sm mb-6">
                 <feature.icon size={28} />
               </div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
@@ -65,41 +65,52 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Features />
-        <CardForm />
         
-        {/* How it works section */}
-        <section id="how-it-works" className="py-24 bg-primary text-white overflow-hidden">
+        {/* 1. Comment ça marche ? */}
+        <section id="how-it-works" className="py-20 bg-gray-900 text-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               <div>
-                <h2 className="text-4xl lg:text-5xl font-serif font-bold mb-8">Comment ça marche ?</h2>
-                <div className="space-y-12">
+                <h2 className="text-4xl lg:text-5xl font-serif font-bold text-white mb-12">
+                  Comment ça marche ?
+                </h2>
+                
+                <div className="space-y-10">
                   {[
                     { step: "01", title: "Configurez votre profil", desc: "Remplissez le formulaire avec vos coordonnées et liens sociaux." },
                     { step: "02", title: "Validation par nos experts", desc: "Notre équipe vérifie vos données et optimise le design de votre carte." },
                     { step: "03", title: "Réception & Activation", desc: "Recevez votre carte physique et commencez à networker intelligemment." }
                   ].map((item, i) => (
-                    <div key={i} className="flex gap-6">
-                      <span className="text-4xl font-serif font-bold opacity-20">{item.step}</span>
+                    <div key={i} className="flex gap-6 items-start">
+                      {/* Numéro blanc opaque uni */}
+                      <span className="text-4xl font-serif font-bold text-white shrink-0 select-none">
+                        {item.step}
+                      </span>
                       <div>
-                        <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                        <p className="text-white/70 leading-relaxed">{item.desc}</p>
+                        <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                        <p className="text-gray-400 leading-relaxed">{item.desc}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="relative">
+              
+              <div className="relative justify-self-center lg:justify-self-end w-full max-w-md lg:max-w-none">
                 <img 
                   src="/boostingex.png" 
                   alt="NFC Tap" 
-                  className="rounded-3xl shadow-2xl transform -rotate-6"
+                  className="rounded-3xl shadow-2xl transform -rotate-3 max-w-full h-auto"
                 />
               </div>
             </div>
           </div>
         </section>
+
+        {/* 2. Le Formulaire de commande */}
+        <CardForm />
+
+        {/* 3. Pourquoi choisir Boosting */}
+        <Features />
       </main>
       <Footer />
     </div>

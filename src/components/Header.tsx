@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, CreditCard } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Header = () => {
@@ -27,14 +27,18 @@ const Header = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link to="/"   onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-  className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-             <img
-        src="/logozoomed.png"
-        alt="Boosting.fr Logo"
-        className="w-8 h-8 object-contain"
-      />
+        <Link 
+          to="/"   
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="flex items-center gap-2 group"
+        >
+          {/* Ajout de overflow-hidden pour masquer ce qui dépasse des arrondis */}
+          <div className="w-10 h-10 bg-primary rounded-xl overflow-hidden flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+            <img
+              src="/logozoomed.png"
+              alt="Boosting.fr Logo"
+              className="w-full h-full object-cover" 
+            />
           </div>
           <span className="text-2xl font-bold tracking-tight font-serif">boosting.fr</span>
         </Link>
