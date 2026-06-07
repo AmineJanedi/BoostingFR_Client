@@ -27,9 +27,14 @@ const Header = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
+        <Link to="/"   onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+  className="flex items-center gap-2 group">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-            <CreditCard size={24} />
+             <img
+        src="/logo.png"
+        alt="Boosting.fr Logo"
+        className="w-8 h-8 object-contain"
+      />
           </div>
           <span className="text-2xl font-bold tracking-tight font-serif">boosting.fr</span>
         </Link>

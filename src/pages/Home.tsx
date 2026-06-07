@@ -92,7 +92,7 @@ export default function Home() {
               </div>
               <div className="relative">
                 <img 
-                  src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?auto=format&fit=crop&q=80&w=1000" 
+                  src="/boostingex.png" 
                   alt="NFC Tap" 
                   className="rounded-3xl shadow-2xl transform -rotate-6"
                 />
