@@ -3,20 +3,24 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard } from 'lucide-react';
+import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { supabase } from '../supabaseClient';
 
+// Validation Zod modifiée pour accepter les chaînes de texte libres pour le site web
 const schema = z.object({
   name: z.string().min(2, "Le nom est requis"),
   title: z.string().min(2, "Le poste est requis"),
-  company: z.string().min(2, "L'entreprise est requise"),
   email: z.string().email("Email invalide"),
   phone: z.string().min(10, "Numéro de téléphone invalide"),
-  website: z.string().url("L'URL doit commencer par http:// ou https://").or(z.string().length(0)),
+  company: z.string().optional().or(z.string().length(0)),
+  // Changement ici : On accepte du texte classique plutôt que de forcer le format strict z.string().url()
+  website: z.string().optional().or(z.string().length(0)),
   facebook: z.string().optional(),
   instagram: z.string().optional(),
+  linkedin: z.string().optional(),
   calendly: z.string().optional(),
+  remark: z.string().optional(),
   photoFile: z.any().optional(),
   logoFile: z.any().optional(),
   primaryColor: z.string().default("#1a1a1a"),
@@ -35,10 +39,13 @@ const CardForm = () => {
     defaultValues: {
       primaryColor: "#1a1a1a",
       accentColor: "#ffffff",
+      company: "",
       website: "",
       facebook: "",
       instagram: "",
-      calendly: ""
+      linkedin: "",
+      calendly: "",
+      remark: ""
     }
   });
 
@@ -96,7 +103,6 @@ const CardForm = () => {
         return urlData.publicUrl;
       };
 
-      // 1. Envoi des fichiers aux buckets de stockage
       if (data.photoFile && data.photoFile.length > 0) {
         photoUrl = await uploadFile(data.photoFile, 'photo');
       }
@@ -104,7 +110,6 @@ const CardForm = () => {
         logoUrl = await uploadFile(data.logoFile, 'logo');
       }
 
-      // 2. Nettoyage des fichiers pour l'insertion SQL
       const { photoFile, logoFile, ...textData } = data;
       
       const finalPayload = {
@@ -113,7 +118,6 @@ const CardForm = () => {
         logoUrl: logoUrl
       };
 
-      // 3. Sauvegarde dans la table SQL
       const { error: insertError } = await supabase
         .from('nfc_cards')
         .insert([finalPayload]);
@@ -140,7 +144,7 @@ const CardForm = () => {
         </div>
         <h2 className="text-3xl font-serif font-bold mb-4">Demande Reçue !</h2>
         <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-          Merci pour votre confiance. L'équipe de <strong>Boosting FR</strong> va analyser vos données et vous envoyer un email de confirmation pour valider le design de votre carte NFC sous 24h.
+          Merci pour votre confiance. L'équipe de <strong>Boosting FR</strong> va analyser vos données et vous envoyer un email de confirmation pour valider le design de votre carte QR Code sous 24h.
         </p>
         <button 
           onClick={() => setIsSubmitted(false)}
@@ -158,17 +162,19 @@ const CardForm = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-serif font-bold mb-4">Personnalisez votre carte</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Remplissez les informations ci-dessous. Ces données seront encodées dans votre puce NFC et affichées sur votre profil digital.
+            Remplissez les informations ci-dessous. Les champs marqués d'une étoile (*) sont obligatoires.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-7">
             <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 space-y-8">
+              
+              {/* Ligne 1 : Nom et Poste */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <User size={16} /> Nom Complet
+                    <User size={16} /> Nom Complet *
                   </label>
                   <input 
                     {...register('name')}
@@ -179,7 +185,7 @@ const CardForm = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Briefcase size={16} /> Poste / Titre
+                    <Briefcase size={16} /> Poste / Titre *
                   </label>
                   <input 
                     {...register('title')}
@@ -190,9 +196,10 @@ const CardForm = () => {
                 </div>
               </div>
 
+              {/* Entreprise */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                  <Briefcase size={16} /> Entreprise
+                  <Briefcase size={16} /> Entreprise (Optionnel)
                 </label>
                 <input 
                   {...register('company')}
@@ -202,10 +209,11 @@ const CardForm = () => {
                 {errors.company && <p className="text-xs text-red-500">{errors.company.message}</p>}
               </div>
 
+              {/* Ligne 2 : Email et Téléphone */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Mail size={16} /> Email Professionnel
+                    <Mail size={16} /> Email Professionnel *
                   </label>
                   <input 
                     {...register('email')}
@@ -216,7 +224,7 @@ const CardForm = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Phone size={16} /> Téléphone
+                    <Phone size={16} /> Téléphone *
                   </label>
                   <input 
                     {...register('phone')}
@@ -227,22 +235,44 @@ const CardForm = () => {
                 </div>
               </div>
 
+              {/* Site Web sans contrainte d'URL absolue */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                  <Globe size={16} /> Site Web
+                  <Globe size={16} /> Site Web (Optionnel)
                 </label>
                 <input 
                   {...register('website')}
-                  placeholder="https://www.votre-site.com"
+                  placeholder="www.votre-site.com"
                   className={`w-full px-4 py-3 rounded-xl border ${errors.website ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-primary/20 outline-none transition-all`}
                 />
                 {errors.website && <p className="text-xs text-red-500">{errors.website.message}</p>}
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              {/* Réseaux Sociaux & Liens */}
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Facebook size={16} /> Facebook
+                    <Linkedin size={16} /> LinkedIn (Optionnel)
+                  </label>
+                  <input 
+                    {...register('linkedin')}
+                    placeholder="Lien profil LinkedIn"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Calendar size={16} /> Calendly (Optionnel)
+                  </label>
+                  <input 
+                    {...register('calendly')}
+                    placeholder="Lien de rdv"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Facebook size={16} /> Facebook (Optionnel)
                   </label>
                   <input 
                     {...register('facebook')}
@@ -252,7 +282,7 @@ const CardForm = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Instagram size={16} /> Instagram
+                    <Instagram size={16} /> Instagram (Optionnel)
                   </label>
                   <input 
                     {...register('instagram')}
@@ -260,22 +290,13 @@ const CardForm = () => {
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Calendar size={16} /> Calendly
-                  </label>
-                  <input 
-                    {...register('calendly')}
-                    placeholder="Lien de rdv"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                </div>
               </div>
 
+              {/* Médias */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <ImageIcon size={16} /> Photo de Profil
+                    <ImageIcon size={16} /> Photo de Profil (Optionnel)
                   </label>
                   <input 
                     type="file"
@@ -286,7 +307,7 @@ const CardForm = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <ImageIcon size={16} /> Logo Entreprise
+                    <ImageIcon size={16} /> Logo Entreprise (Optionnel)
                   </label>
                   <input 
                     type="file"
@@ -297,6 +318,7 @@ const CardForm = () => {
                 </div>
               </div>
 
+              {/* Couleurs */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -326,6 +348,20 @@ const CardForm = () => {
                 </div>
               </div>
 
+              {/* Champ Remarque */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <FileText size={16} /> Écrire une remarque (Optionnel)
+                </label>
+                <textarea 
+                  {...register('remark')}
+                  placeholder="Ajoutez ici vos instructions particulières ou détails de personnalisation..."
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                />
+              </div>
+
+              {/* Bouton Soumission */}
               <div className="space-y-2">
                 <button 
                   type="submit"
@@ -351,7 +387,7 @@ const CardForm = () => {
             </form>
           </div>
 
-          {/* Aperçu */}
+          {/* Aperçu Visuel */}
           <div className="lg:col-span-5 sticky top-32">
             <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
               <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -376,7 +412,7 @@ const CardForm = () => {
                     </div>
                     
                     <div className="text-right flex flex-col items-end gap-2">
-                      <p className="text-[10px] font-bold tracking-widest opacity-60" style={{ color: accentColor }}>NFC ENABLED</p>
+                      <p className="text-[10px] font-bold tracking-widest opacity-60" style={{ color: accentColor }}>QR Code Activé</p>
                       {photoPreview && (
                         <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/20 shadow-md">
                           <img src={photoPreview} alt="Profil" className="w-full h-full object-cover" />

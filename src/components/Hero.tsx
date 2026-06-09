@@ -30,7 +30,7 @@ const Hero = () => {
           </h1>
           
           <p className="text-lg text-gray-600 mb-6 max-w-xl leading-relaxed">
-            Passez au digital avec les cartes de visite NFC de Boosting.fr. Partagez vos coordonnées, réseaux sociaux et liens en un seul geste.
+            Passez au digital avec les cartes de visite QR Code de Boosting.fr. Partagez vos coordonnées, réseaux sociaux et liens en un seul geste.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -67,7 +67,7 @@ const Hero = () => {
           <div className="relative z-10 aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
             <img 
               src="/carte.png" 
-              alt="NFC Business Card" 
+              alt="QR Code Business Card" 
     className="w-4/4 h-auto object-contain"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6 text-white">

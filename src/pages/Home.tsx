@@ -26,12 +26,12 @@ const Features = () => {
     {
       icon: Smartphone,
       title: "Compatible iOS & Android",
-      description: "Fonctionne avec tous les smartphones modernes équipés de la technologie NFC."
+      description: "Fonctionne avec tous les smartphones modernes équipés de la technologie QR Code."
     }
   ];
 
   return (
-    <section id="products" className="py-24 bg-gray-50">
+    <section id="service" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-serif font-bold mb-4">Pourquoi choisir Boosting.fr ?</h2>
@@ -98,7 +98,7 @@ export default function Home() {
               <div className="relative justify-self-center lg:justify-self-end w-full max-w-md lg:max-w-none">
                 <img 
                   src="/boostingex.png" 
-                  alt="NFC Tap" 
+                  alt="QR Code Tap" 
                   className="rounded-3xl shadow-2xl transform -rotate-3 max-w-full h-auto"
                 />
               </div>

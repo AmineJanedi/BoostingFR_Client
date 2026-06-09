@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, CheckCircle2, XCircle, Euro, ShieldAlert, LogOut, RefreshCw, ChevronDown, ChevronUp, Globe, Facebook, Instagram, Calendar, Image as ImageIcon, ExternalLink } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Euro, ShieldAlert, LogOut, RefreshCw, ChevronDown, ChevronUp, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface CardData {
@@ -16,28 +16,25 @@ interface CardData {
   website: string;
   facebook: string;
   instagram: string;
+  linkedin: string;
   calendly: string;
   photoUrl: string | null;
   logoUrl: string | null;
   primaryColor: string;
   accentColor: string;
   paid_amount: number;
+  remark?: string; // Ajouté pour correspondre au schéma de la base de données
 }
 
 const AdminDashboard = () => {
-  // Authentification locale
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAdminAuth') === 'true';
   });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
-  // Données et états UI
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
-
-  // États pour la modal de confirmation du montant
   const [confirmingCardId, setConfirmingCardId] = useState<number | null>(null);
   const [amountInput, setAmountInput] = useState<string>('45');
 
@@ -58,7 +55,7 @@ const AdminDashboard = () => {
       if (error) throw error;
       setCards(data || []);
     } catch (error: any) {
-      toast.error("Erreur lors de la récupération des données");
+      toast.error("Erreur lors de la récupération");
       console.error(error);
     } finally {
       setLoading(false);
@@ -96,7 +93,7 @@ const AdminDashboard = () => {
       const { error } = await supabase
         .from('nfc_cards')
         .update({ 
-          status: 'confirmed',
+          status: 'confirmed', 
           paid_amount: finalAmount
         })
         .eq('id', confirmingCardId);
@@ -111,8 +108,9 @@ const AdminDashboard = () => {
       
       toast.success(`Client confirmé (${finalAmount} € enregistré)`);
       setConfirmingCardId(null);
-    } catch (error) {
-      toast.error("Impossible de confirmer le client");
+    } catch (error: any) {
+      console.error("Erreur de mise à jour Supabase :", error);
+      toast.error(`Erreur : ${error.message || "Vérifiez vos politiques RLS ou contraintes SQL"}`);
     }
   };
 
@@ -134,9 +132,10 @@ const AdminDashboard = () => {
           ? { ...card, status: 'cancelled', paid_amount: 0 } 
           : card
       ));
-      toast.info(`Demande annulée`);
-    } catch (error) {
-      toast.error("Impossible de modifier le statut");
+      toast.info(`Demande marquée comme annulée.`);
+    } catch (error: any) {
+      console.error("Erreur d'annulation Supabase :", error);
+      toast.error(`Erreur : ${error.message}`);
     }
   };
 
@@ -144,7 +143,6 @@ const AdminDashboard = () => {
     setExpandedCardId(expandedCardId === id ? null : id);
   };
 
-  // Calculs dynamiques
   const totalClients = cards.length;
   const confirmedClients = cards.filter(c => c.status === 'confirmed').length;
   const cancelledClients = cards.filter(c => c.status === 'cancelled').length;
@@ -208,20 +206,12 @@ const AdminDashboard = () => {
             <p className="text-gray-500">Cliquez sur une ligne pour voir le détail des couleurs, visuels et réseaux.</p>
           </div>
           <div className="flex gap-3 items-center">
-            {/* Nouveau bouton Atelier inséré avant le refresh */}
-            <a 
-              href="https://boostingfr.netlify.app/" 
-              target="_blank" 
-              rel="noreferrer"
-              className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-gray-100 transition-all shadow-sm"
-            >
+            <a href="https://boostingfr.netlify.app/" target="_blank" rel="noreferrer" className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-gray-100 transition-all shadow-sm">
               <ExternalLink size={16} /> Atelier
             </a>
-            
             <button onClick={fetchCards} className="p-3 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 shadow-sm">
               <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
             </button>
-            
             <button onClick={handleLogout} className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-red-100 shadow-sm">
               <LogOut size={16} /> Déconnexion
             </button>
@@ -263,7 +253,7 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm text-gray-600">
-                {loading ? (
+                ={loading ? (
                   <tr><td colSpan={6} className="py-10 text-center text-gray-400"><div className="w-8 h-8 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin mx-auto mb-2" />Chargement...</td></tr>
                 ) : cards.length === 0 ? (
                   <tr><td colSpan={6} className="py-10 text-center text-gray-400">Aucune demande reçue.</td></tr>
@@ -297,8 +287,8 @@ const AdminDashboard = () => {
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex justify-center gap-2">
-                              <button onClick={(e) => openConfirmModal(card.id, e)} disabled={card.status === 'confirmed'} className="px-3 py-1.5 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 transition-all disabled:opacity-30">Confirmer</button>
-                              <button onClick={(e) => handleCancelClient(card.id, e)} disabled={card.status === 'cancelled'} className="px-3 py-1.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold text-xs hover:bg-red-50 transition-all disabled:opacity-30">Annuler</button>
+                              <button onClick={(e) => openConfirmModal(card.id, e)} className="px-3 py-1.5 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 transition-all disabled:opacity-30" disabled={card.status === 'confirmed'}>Confirmer</button>
+                              <button onClick={(e) => handleCancelClient(card.id, e)} className="px-3 py-1.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold text-xs hover:bg-red-50 transition-all disabled:opacity-30" disabled={card.status === 'cancelled'}>Annuler</button>
                             </div>
                           </td>
                         </tr>
@@ -309,7 +299,9 @@ const AdminDashboard = () => {
                             <tr className="bg-gray-50/50">
                               <td colSpan={6} className="p-0">
                                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="px-12 py-6 border-l-4 border-gray-900 overflow-hidden">
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6"> {/* Changement ici : grid-cols-4 au lieu de 3 */}
+                                    
+                                    {/* Fichiers Médias */}
                                     <div className="space-y-4">
                                       <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5"><ImageIcon size={14} /> Fichiers Médias</h4>
                                       <div className="flex gap-4">
@@ -324,6 +316,7 @@ const AdminDashboard = () => {
                                       </div>
                                     </div>
 
+                                    {/* Identité Visuelle */}
                                     <div className="space-y-4">
                                       <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">🎨 Identité Visuelle</h4>
                                       <div className="space-y-3">
@@ -338,15 +331,26 @@ const AdminDashboard = () => {
                                       </div>
                                     </div>
 
+                                    {/* Liens soumis */}
                                     <div className="space-y-4">
                                       <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">🔗 Liens soumis</h4>
                                       <div className="space-y-2 text-xs">
                                         {card.website ? <a href={card.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline truncate"><Globe size={14} /> Site : {card.website}</a> : <p className="text-gray-400 flex items-center gap-2"><Globe size={14} /> Aucun site web</p>}
                                         {card.facebook && <a href={card.facebook} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-800 hover:underline truncate"><Facebook size={14} /> Facebook</a>}
                                         {card.instagram && <a href={card.instagram} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-pink-600 hover:underline truncate"><Instagram size={14} /> Instagram</a>}
+                                        {card.linkedin && <a href={card.linkedin} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-blue-700 hover:underline truncate"><Linkedin size={14} /> LinkedIn</a>}
                                         {card.calendly && <a href={card.calendly} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-orange-600 hover:underline truncate"><Calendar size={14} /> Calendly</a>}
                                       </div>
                                     </div>
+
+                                    {/* Section Remarque (Nouveau) */}
+                                    <div className="space-y-4">
+                                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5"><FileText size={14} /> Note / Remarque</h4>
+                                      <div className="p-3 bg-white rounded-xl border border-gray-200 text-xs text-gray-700 min-h-[80px] italic">
+                                        {card.remark ? card.remark : "Aucune remarque ou consigne particulière laissée par le client."}
+                                      </div>
+                                    </div>
+
                                   </div>
                                 </motion.div>
                               </td>

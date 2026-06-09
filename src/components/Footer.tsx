@@ -14,7 +14,7 @@ const Footer = () => {
               <span className="text-2xl font-bold tracking-tight font-serif">boosting.fr</span>
             </div>
             <p className="text-gray-500 leading-relaxed">
-              L'agence leader en solutions de networking NFC en France. Nous transformons vos interactions professionnelles.
+              L'agence leader en solutions de networking QR Code en France. Nous transformons vos interactions professionnelles.
             </p>
             <div className="flex gap-4">
               {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
@@ -44,9 +44,9 @@ const Footer = () => {
               <li><a href="#" className="hover:text-primary transition-colors">Partenaires</a></li>
             </ul>
           </div>
-
+ {/* 
           <div>
-            <h4 className="font-bold mb-6">Contact</h4>
+           <h4 className="font-bold mb-6">Contact</h4>
             <ul className="space-y-4 text-gray-500">
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-primary" />
@@ -61,7 +61,7 @@ const Footer = () => {
                 Paris, France
               </li>
             </ul>
-          </div>
+          </div>*/}
         </div>
 
         <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">

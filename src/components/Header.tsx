@@ -14,10 +14,9 @@ const Header = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Produits', href: '#products' },
     { name: 'Fonctionnement', href: '#how-it-works' },
-    { name: 'Témoignages', href: '#testimonials' },
-    { name: 'FAQ', href: '#faq' },
+    { name: 'Service', href: '#service' },
+    
   ];
 
   return (
