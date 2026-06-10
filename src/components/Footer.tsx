@@ -1,7 +1,14 @@
 import React from 'react';
-import { CreditCard, Instagram, Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { CreditCard, Instagram, Facebook, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
+  // Tableau d'objets pour associer chaque icône à son lien correspondant
+  const socialLinks = [
+    { Icon: Instagram, url: "https://www.instagram.com/boosting.fr" },
+    { Icon: Facebook, url: "https://www.facebook.com/people/Boostingfr/61590460330912/" },
+    { Icon: Linkedin, url: "https://www.linkedin.com/company/boostingfr/" }
+  ];
+
   return (
     <footer className="bg-white border-t border-gray-100 pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6">
@@ -17,8 +24,14 @@ const Footer = () => {
               L'agence leader en solutions de networking QR Code en France. Nous transformons vos interactions professionnelles.
             </p>
             <div className="flex gap-4">
-              {[Instagram, Facebook, Twitter, Linkedin].map((Icon, i) => (
-                <a key={i} href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+              {socialLinks.map(({ Icon, url }, i) => (
+                <a 
+                  key={i} 
+                  href={url}
+                  target={url !== "#" ? "_blank" : undefined}
+                  rel={url !== "#" ? "noopener noreferrer" : undefined}
+                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all"
+                >
                   <Icon size={20} />
                 </a>
               ))}
@@ -44,9 +57,11 @@ const Footer = () => {
               <li><a href="#" className="hover:text-primary transition-colors">Partenaires</a></li>
             </ul>
           </div>
- {/* 
+
+          {/* Contact section restée commentée comme dans votre code initial */}
+          {/* 
           <div>
-           <h4 className="font-bold mb-6">Contact</h4>
+            <h4 className="font-bold mb-6">Contact</h4>
             <ul className="space-y-4 text-gray-500">
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-primary" />
@@ -61,7 +76,8 @@ const Footer = () => {
                 Paris, France
               </li>
             </ul>
-          </div>*/}
+          </div>
+          */}
         </div>
 
         <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
