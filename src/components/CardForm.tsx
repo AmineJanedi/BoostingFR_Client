@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText, MessageCircle, Music } from 'lucide-react';
+import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText, MessageCircle, Music, Tag } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { supabase } from '../supabaseClient';
 
@@ -163,9 +163,12 @@ const CardForm = () => {
     <section id="create" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-black text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-4 shadow-sm">
+            <Tag size={14} /> Tarif unique : 35€ / carte
+          </div>
           <h2 className="text-4xl font-serif font-bold mb-4">Personnalisez votre carte</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Remplissez les informations ci-dessous. Les champs marqués d'une étoile (*) sont obligatoires.
+            Remplissez les informations ci-dessous pour configurer votre carte QR Code personnalisée. Les champs marqués d'une étoile (*) sont obligatoires.
           </p>
         </div>
 
@@ -384,8 +387,13 @@ const CardForm = () => {
                 />
               </div>
 
-              {/* Bouton Soumission */}
-              <div className="space-y-2">
+              {/* Bouton Soumission avec Rappel Prix */}
+              <div className="space-y-2 pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center text-sm mb-4 bg-gray-50 p-4 rounded-xl">
+                  <span className="text-gray-600 font-medium">Total de votre configuration :</span>
+                  <span className="text-xl font-bold text-black">35,00 €</span>
+                </div>
+                
                 <button 
                   type="submit"
                   disabled={isSubmitting}
@@ -397,7 +405,7 @@ const CardForm = () => {
                       <span className="animate-pulse">Veuillez attendre le chargement...</span>
                     </>
                   ) : (
-                    <>Envoyer ma configuration <Send size={20} /></>
+                    <>Commander ma carte • 35€ <Send size={20} /></>
                   )}
                 </button>
                 
