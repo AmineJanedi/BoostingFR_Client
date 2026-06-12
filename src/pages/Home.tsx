@@ -30,7 +30,7 @@ const PRODUCTS: Product[] = [
     name: 'Cadre de Google Review',
     price: 39,
     description: 'Cadre connecté sans contact (NFC + QR Code) pour inciter vos clients à laisser un avis instantanément.',
-    imageSrc: 'public/googlereview.jpg' // Votre image
+    imageSrc: '/googlereview.jpg' // Votre image
   }
 ];
 
