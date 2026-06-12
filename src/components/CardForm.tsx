@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText } from 'lucide-react';
+import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText, MessageCircle, Music } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { supabase } from '../supabaseClient';
 
@@ -14,11 +14,12 @@ const schema = z.object({
   email: z.string().email("Email invalide"),
   phone: z.string().min(10, "Numéro de téléphone invalide"),
   company: z.string().optional().or(z.string().length(0)),
-  // Changement ici : On accepte du texte classique plutôt que de forcer le format strict z.string().url()
   website: z.string().optional().or(z.string().length(0)),
   facebook: z.string().optional(),
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
+  snapchat: z.string().optional(),
+  tiktok: z.string().optional(),
   calendly: z.string().optional(),
   remark: z.string().optional(),
   photoFile: z.any().optional(),
@@ -44,6 +45,8 @@ const CardForm = () => {
       facebook: "",
       instagram: "",
       linkedin: "",
+      snapchat: "",
+      tiktok: "",
       calendly: "",
       remark: ""
     }
@@ -287,6 +290,26 @@ const CardForm = () => {
                   <input 
                     {...register('instagram')}
                     placeholder="Lien profil"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <MessageCircle size={16} /> Snapchat (Optionnel)
+                  </label>
+                  <input 
+                    {...register('snapchat')}
+                    placeholder="Nom d'utilisateur ou lien"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Music size={16} /> TikTok (Optionnel)
+                  </label>
+                  <input 
+                    {...register('tiktok')}
+                    placeholder="Nom d'utilisateur ou lien"
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
