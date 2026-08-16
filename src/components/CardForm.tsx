@@ -6,10 +6,9 @@ import { motion } from 'framer-motion';
 import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText, MessageCircle, Music, Tag } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Firebase Imports
-import { db, storage } from '../firebaseClient';
+// Firestore Imports (Firebase Storage removed)
+import { db } from '../firebaseClient';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const schema = z.object({
   name: z.string().min(2, "Le nom est requis"),
@@ -82,28 +81,41 @@ const CardForm = () => {
     }
   }, [watchedLogo]);
 
+  // Cloudinary Direct Upload Handler
+  const uploadToCloudinary = async (fileList: any) => {
+    if (!fileList || fileList.length === 0) return null;
+    const file = fileList[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "boosting_preset");
+
+    const response = await fetch(
+      "https://api.cloudinary.com/v1_1/pkhib1pi/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Erreur lors du téléchargement de l'image sur Cloudinary");
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
   const onSubmit = async (data: FormData) => {
     try {
       let photoUrl = null;
       let logoUrl = null;
 
-      // Firebase Storage Upload Function
-      const uploadFile = async (fileList: any, prefix: string) => {
-        if (!fileList || fileList.length === 0) return null;
-        const file = fileList[0];
-        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const fileName = `card-assets/${prefix}_${Date.now()}.${fileExt}`;
-        
-        const storageRef = ref(storage, fileName);
-        await uploadBytes(storageRef, file);
-        return await getDownloadURL(storageRef);
-      };
-
       if (data.photoFile && data.photoFile.length > 0) {
-        photoUrl = await uploadFile(data.photoFile, 'photo');
+        photoUrl = await uploadToCloudinary(data.photoFile);
       }
       if (data.logoFile && data.logoFile.length > 0) {
-        logoUrl = await uploadFile(data.logoFile, 'logo');
+        logoUrl = await uploadToCloudinary(data.logoFile);
       }
 
       const { photoFile, logoFile, ...textData } = data;

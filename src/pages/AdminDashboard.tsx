@@ -80,7 +80,7 @@ const AdminDashboard = () => {
  const fetchAllData = async () => {
   setLoading(true);
   try {
-    // 1. Fetch NFC Cards from Firestore (without enforcing query-level ordering)
+    // 1. Fetch NFC Cards from Firestore
     const cardsSnapshot = await getDocs(collection(db, 'nfc_cards'));
 
     const cardsData = cardsSnapshot.docs.map((snapshot) => {
@@ -88,15 +88,37 @@ const AdminDashboard = () => {
       
       // Normalize timestamp conversion across ServerTimestamp, Date objects, and ISO strings
       let formattedDate = '';
-      if (data.created_at?.toDate) {
+      if (data.createdAt?.toDate) {
+        formattedDate = data.createdAt.toDate().toISOString();
+      } else if (data.created_at?.toDate) {
         formattedDate = data.created_at.toDate().toISOString();
+      } else if (data.createdAt) {
+        formattedDate = new Date(data.createdAt).toISOString();
       } else if (data.created_at) {
         formattedDate = new Date(data.created_at).toISOString();
       }
 
       return {
-        ...data,
         id: snapshot.id,
+        name: data.name || '',
+        title: data.title || '',
+        company: data.company || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        website: data.website || '',
+        facebook: data.facebook || '',
+        instagram: data.instagram || '',
+        linkedin: data.linkedin || '',
+        snapchat: data.snapchat || '',
+        tiktok: data.tiktok || '',
+        calendly: data.calendly || '',
+        photoUrl: data.photoUrl || null,
+        logoUrl: data.logoUrl || null,
+        primaryColor: data.primaryColor || '#1a1a1a',
+        accentColor: data.accentColor || '#ffffff',
+        status: data.status || 'pending',
+        paid_amount: data.paid_amount !== undefined ? Number(data.paid_amount) : 35,
+        remark: data.remark || '',
         created_at: formattedDate,
       } as CardData;
     });
@@ -119,8 +141,16 @@ const AdminDashboard = () => {
       }
 
       return {
-        ...data,
         id: snapshot.id,
+        product_name: data.product_name || '',
+        price_unit: Number(data.price_unit) || 0,
+        quantity: Number(data.quantity) || 1,
+        total_price: Number(data.total_price) || 0,
+        customer_name: data.customer_name || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        zip_code: data.zip_code || '',
+        status: data.status || 'pending',
         created_at: formattedDate,
       } as ProductOrderData;
     });
