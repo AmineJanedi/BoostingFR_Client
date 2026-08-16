@@ -16,6 +16,7 @@
     "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.19",
     "date-fns": "^3.6.0",
+    "firebase": "^12.17.1",
     "framer-motion": "^12.12.2",
     "globals": "^16.4.0",
     "lucide-react": "^0.462.0",

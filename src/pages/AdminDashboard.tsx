@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import { db } from '../firebaseClient'; // Update this path to match your Firebase config
+import { collection, query, orderBy, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, CheckCircle2, XCircle, Euro, ShieldAlert, LogOut, RefreshCw, 
@@ -9,7 +10,7 @@ import {
 import { toast } from 'react-toastify';
 
 interface CardData {
-  id: number;
+  id: string;
   created_at: string;
   name: string;
   company: string;
@@ -33,7 +34,7 @@ interface CardData {
 }
 
 interface ProductOrderData {
-  id: number;
+  id: string;
   created_at: string;
   product_name: string;
   price_unit: number;
@@ -62,12 +63,12 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<'cards' | 'products'>('cards');
 
   // États de déploiement des lignes
-  const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
-  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   // Modals de validation financière
-  const [confirmingCardId, setConfirmingCardId] = useState<number | null>(null);
-  const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null);
+  const [confirmingCardId, setConfirmingCardId] = useState<string | null>(null);
+  const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState<string>('45');
 
   useEffect(() => {
@@ -76,34 +77,65 @@ const AdminDashboard = () => {
     }
   }, [isAuthenticated]);
 
-  const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      // 1. Récupération des cartes NFC
-      const { data: cardsData, error: cardsError } = await supabase
-        .from('nfc_cards')
-        .select('*')
-        .order('created_at', { ascending: false });
+ const fetchAllData = async () => {
+  setLoading(true);
+  try {
+    // 1. Fetch NFC Cards from Firestore (without enforcing query-level ordering)
+    const cardsSnapshot = await getDocs(collection(db, 'nfc_cards'));
 
-      if (cardsError) throw cardsError;
-      setCards(cardsData || []);
+    const cardsData = cardsSnapshot.docs.map((snapshot) => {
+      const data = snapshot.data();
+      
+      // Normalize timestamp conversion across ServerTimestamp, Date objects, and ISO strings
+      let formattedDate = '';
+      if (data.created_at?.toDate) {
+        formattedDate = data.created_at.toDate().toISOString();
+      } else if (data.created_at) {
+        formattedDate = new Date(data.created_at).toISOString();
+      }
 
-      // 2. Récupération des commandes d'accessoires complémentaires
-      const { data: productsData, error: productsError } = await supabase
-        .from('product_orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+      return {
+        ...data,
+        id: snapshot.id,
+        created_at: formattedDate,
+      } as CardData;
+    });
 
-      if (productsError) throw productsError;
-      setProductOrders(productsData || []);
+    // In-memory sort by created_at (descending)
+    cardsData.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    setCards(cardsData);
 
-    } catch (error: any) {
-      toast.error("Erreur lors du chargement des données");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 2. Fetch Product Orders from Firestore
+    const productsSnapshot = await getDocs(collection(db, 'product_orders'));
+
+    const productsData = productsSnapshot.docs.map((snapshot) => {
+      const data = snapshot.data();
+
+      let formattedDate = '';
+      if (data.created_at?.toDate) {
+        formattedDate = data.created_at.toDate().toISOString();
+      } else if (data.created_at) {
+        formattedDate = new Date(data.created_at).toISOString();
+      }
+
+      return {
+        ...data,
+        id: snapshot.id,
+        created_at: formattedDate,
+      } as ProductOrderData;
+    });
+
+    // In-memory sort by created_at (descending)
+    productsData.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    setProductOrders(productsData);
+
+  } catch (error: any) {
+    toast.error("Erreur lors du chargement des données");
+    console.error("Firestore Fetch Error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +155,7 @@ const AdminDashboard = () => {
   };
 
   // --- ACTIONS CARTES NFC ---
-  const openConfirmCardModal = (id: number, e: React.MouseEvent) => {
+  const openConfirmCardModal = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setConfirmingCardId(id);
     setAmountInput('45');
@@ -134,12 +166,10 @@ const AdminDashboard = () => {
     const finalAmount = parseFloat(amountInput) || 0;
 
     try {
-      const { error } = await supabase
-        .from('nfc_cards')
-        .update({ status: 'confirmed', paid_amount: finalAmount })
-        .eq('id', confirmingCardId);
-
-      if (error) throw error;
+      await updateDoc(doc(db, 'nfc_cards', confirmingCardId), {
+        status: 'confirmed',
+        paid_amount: finalAmount,
+      });
 
       setCards(prev => prev.map(card => 
         card.id === confirmingCardId ? { ...card, status: 'confirmed', paid_amount: finalAmount } : card
@@ -152,15 +182,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCancelCard = async (id: number, e: React.MouseEvent) => {
+  const handleCancelCard = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { error } = await supabase
-        .from('nfc_cards')
-        .update({ status: 'cancelled', paid_amount: 0 })
-        .eq('id', id);
-
-      if (error) throw error;
+      await updateDoc(doc(db, 'nfc_cards', id), {
+        status: 'cancelled',
+        paid_amount: 0,
+      });
 
       setCards(prev => prev.map(card => card.id === id ? { ...card, status: 'cancelled', paid_amount: 0 } : card));
       toast.info(`Demande de carte annulée.`);
@@ -181,12 +209,10 @@ const AdminDashboard = () => {
     const finalAmount = parseFloat(amountInput) || 0;
 
     try {
-      const { error } = await supabase
-        .from('product_orders')
-        .update({ status: 'confirmed', total_price: finalAmount })
-        .eq('id', confirmingOrderId);
-
-      if (error) throw error;
+      await updateDoc(doc(db, 'product_orders', confirmingOrderId), {
+        status: 'confirmed',
+        total_price: finalAmount,
+      });
 
       setProductOrders(prev => prev.map(order => 
         order.id === confirmingOrderId ? { ...order, status: 'confirmed', total_price: finalAmount } : order
@@ -199,15 +225,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCancelOrder = async (id: number, e: React.MouseEvent) => {
+  const handleCancelOrder = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const { error } = await supabase
-        .from('product_orders')
-        .update({ status: 'cancelled' })
-        .eq('id', id);
-
-      if (error) throw error;
+      await updateDoc(doc(db, 'product_orders', id), {
+        status: 'cancelled',
+      });
 
       setProductOrders(prev => prev.map(order => order.id === id ? { ...order, status: 'cancelled' } : order));
       toast.info(`Commande produit marquée comme annulée.`);

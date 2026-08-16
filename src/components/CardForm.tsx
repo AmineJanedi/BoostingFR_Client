@@ -5,9 +5,12 @@ import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { User, Briefcase, Mail, Phone, Globe, Facebook, Instagram, Linkedin, Calendar, Image as ImageIcon, Palette, Send, CheckCircle, CreditCard, FileText, MessageCircle, Music, Tag } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { supabase } from '../supabaseClient';
 
-// Validation Zod modifiée pour accepter les chaînes de texte libres pour le site web
+// Firebase Imports
+import { db, storage } from '../firebaseClient';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 const schema = z.object({
   name: z.string().min(2, "Le nom est requis"),
   title: z.string().min(2, "Le poste est requis"),
@@ -84,26 +87,16 @@ const CardForm = () => {
       let photoUrl = null;
       let logoUrl = null;
 
+      // Firebase Storage Upload Function
       const uploadFile = async (fileList: any, prefix: string) => {
         if (!fileList || fileList.length === 0) return null;
         const file = fileList[0];
         const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const fileName = `${prefix}_${Date.now()}.${fileExt}`;
+        const fileName = `card-assets/${prefix}_${Date.now()}.${fileExt}`;
         
-        const { error: uploadError } = await supabase.storage
-          .from('card-assets')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('card-assets')
-          .getPublicUrl(fileName);
-
-        return urlData.publicUrl;
+        const storageRef = ref(storage, fileName);
+        await uploadBytes(storageRef, file);
+        return await getDownloadURL(storageRef);
       };
 
       if (data.photoFile && data.photoFile.length > 0) {
@@ -118,14 +111,12 @@ const CardForm = () => {
       const finalPayload = {
         ...textData,
         photoUrl: photoUrl, 
-        logoUrl: logoUrl
+        logoUrl: logoUrl,
+        createdAt: serverTimestamp()
       };
 
-      const { error: insertError } = await supabase
-        .from('nfc_cards')
-        .insert([finalPayload]);
-
-      if (insertError) throw insertError;
+      // Firestore Document Insert
+      await addDoc(collection(db, 'nfc_cards'), finalPayload);
 
       setIsSubmitted(true);
       toast.success("Demande envoyée et enregistrée avec succès !");
@@ -241,7 +232,7 @@ const CardForm = () => {
                 </div>
               </div>
 
-              {/* Site Web sans contrainte d'URL absolue */}
+              {/* Site Web */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                   <Globe size={16} /> Site Web (Optionnel)
@@ -387,7 +378,7 @@ const CardForm = () => {
                 />
               </div>
 
-              {/* Bouton Soumission avec Rappel Prix */}
+              {/* Bouton Soumission */}
               <div className="space-y-2 pt-4 border-t border-gray-100">
                 <div className="flex justify-between items-center text-sm mb-4 bg-gray-50 p-4 rounded-xl">
                   <span className="text-gray-600 font-medium">Total de votre configuration :</span>

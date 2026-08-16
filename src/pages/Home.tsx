@@ -5,7 +5,8 @@ import CardForm from '../components/CardForm';
 import Footer from '../components/Footer'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Shield, Smartphone, RefreshCw, ShoppingBag, X } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { db } from '../firebaseClient';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 
 // Structure de données pour les produits dérivés
@@ -117,23 +118,18 @@ export default function Home() {
     const totalPrice = selectedProduct.price * quantity;
 
     try {
-      const { error } = await supabase
-        .from('product_orders')
-        .insert([
-          {
-            product_name: selectedProduct.name,
-            price_unit: selectedProduct.price,
-            quantity: quantity,
-            total_price: totalPrice,
-            customer_name: formData.name,
-            phone: formData.phone,
-            address: formData.address,
-            zip_code: formData.zipCode,
-            status: 'pending'
-          }
-        ]);
-
-      if (error) throw error;
+      await addDoc(collection(db, 'product_orders'), {
+        product_name: selectedProduct.name,
+        price_unit: selectedProduct.price,
+        quantity,
+        total_price: totalPrice,
+        customer_name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        zip_code: formData.zipCode,
+        status: 'pending',
+        created_at: serverTimestamp(),
+      });
 
       toast.success(`Votre commande de ${selectedProduct.name} a été enregistrée !`);
       setSelectedProduct(null);
@@ -290,7 +286,7 @@ export default function Home() {
                       />
                       <button 
                         type="button" 
-                        onClick={() => setQuantity(q => q + 1)} 
+                        onClick={() => setQuantity(q => Math.min(q + 1, 99))} 
                         className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center font-bold text-gray-600 hover:bg-gray-50"
                       >
                         +
